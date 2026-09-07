@@ -1,0 +1,44 @@
+# Git ignore configuration for SmartPack AI
+
+# Node.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.env*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+backend/.venv/
+backend/venv/
+backend/env/
+backend/ENV/
+backend/dist/
+backend/build/
+backend/*.egg-info/
+backend/src/alembic/versions/*.pyc
+
+# Database & Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.db
+*.sqlite
+
+# Logs
+logs/
+*.log
+
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+frontend/tsconfig.tsbuildinfo

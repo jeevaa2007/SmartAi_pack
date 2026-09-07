@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smartpack-db
+    restart: always
+    environment:
+      POSTGRES_USER: smartpack_user
+      POSTGRES_PASSWORD: smartpack_password
+      POSTGRES_DB: smartpack_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - smartpack-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartpack_user -d smartpack_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartpack-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://smartpack_user:smartpack_password@db:5432/smartpack_db
+      - JWT_SECRET=8f5db9cf2b4d89617ad565e3150244cf5ef02b1bcfa9b4a1b0235b2e9d7c01b2
+      - ENVIRONMENT=development
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartpack-net
+    volumes:
+      - ./backend:/app
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/liveness"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smartpack-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - smartpack-net
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+
+networks:
+  smartpack-net:
+    driver: bridge
+
+volumes:
+  pgdata:

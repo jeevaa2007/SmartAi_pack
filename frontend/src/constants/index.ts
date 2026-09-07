@@ -1,0 +1,2 @@
+// System constant declarations
+export {};
